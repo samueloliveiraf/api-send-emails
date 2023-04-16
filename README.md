@@ -26,4 +26,5 @@
     '
 
 ## Resultado Final 😝
-<img src="./assets/Section-4.jpg" alt="Image for the end step" title="End step">
+    Por token pode enviar até 30 Emails diários
+    A  API envia 300 Emails por dia!
