@@ -26,5 +26,5 @@
     '
 
 ## Resultado Final 😝
-    Por token pode enviar até 30 Emails diários
-    A  API envia 300 Emails por dia!
+    Por token, a API pode enviar até 30 Emails diários, no outro dia é restado o limite e assim sucessivamente
+    A  API enviar até 300 Emails por dia!
