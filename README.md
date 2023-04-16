@@ -7,7 +7,7 @@
 
 ## 📍 Segundo Passo
     curl --request POST \
-      --url https://api-send-emails.aplicacao-tech.com.br/routes/send-emails/77b114be-5e81-4afe-9b60-d024b0e5eae4 \
+      --url https://api-send-emails.aplicacao-tech.com.br/routes/send-emails/SEU_TOKEN_RETORNADO DO PASSO ACIMA \
       --header 'Content-Type: application/json' \
       --data '{
       "emails": [
