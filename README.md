@@ -2,8 +2,8 @@
 **DEV-SAM**: S.Fernandes.(O último mestre do Python)
 
 ## 📍 Primeiro Passo
-## curl --request GET \
-##  --url https://api-send-emails.aplicacao-tech.com.br/routes/token
+    curl --request GET \
+    --url https://api-send-emails.aplicacao-tech.com.br/routes/token
 
 ## 📍 Segundo Passo
 <img src="./assets/Section-3.jpg" alt="Image for the third step" title="Second step">
