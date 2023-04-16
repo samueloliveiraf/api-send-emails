@@ -7,17 +7,17 @@
 
 ## 📍 Segundo Passo
     curl --request POST \
-      --url https://api-send-emails.aplicacao-tech.com.br/routes/send-emails/SEU_TOKEN_RETORNADO DO PASSO ACIMA \
+      --url https://api-send-emails.aplicacao-tech.com.br/routes/send-emails/SEU_TOKEN_RETORNADO_DO_PASSO_ACIMA \
       --header 'Content-Type: application/json' \
       --data '{
       "emails": [
         {
-          "email": "samueldiablo73@gmail.com",
+          "email": "email-example@gmail.com",
           "title": "olá, mundo",
           "body": "Enviando email1"
         },
         {
-          "email": "samuelfernandes2196@gmail.com",
+          "email": "email-example@gmail.com",
           "title": "olá, mundo",
           "body": "Enviando email"
         }
@@ -26,5 +26,6 @@
     '
 
 ## Resultado Final 😝
-    Por token, a API pode enviar até 30 Emails diários, no outro dia é restado o limite e assim sucessivamente
+    Por token, a API pode enviar até 30 Emails diários,
+    no outro dia é restado o limite e assim sucessivamente
     A  API enviar até 300 Emails por dia!
