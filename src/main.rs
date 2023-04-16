@@ -121,7 +121,7 @@ fn send_emails(token_id: String, email_list: Json<EmailList>) -> Result<Json<Mes
 
         let email_list = email_list.into_inner();
 
-        if limit <= 100 {
+        if limit <= 30 {
             for email in email_list.emails {
                 match send_email(&email.email, &email.title, &email.body) {
                     Ok(response) => {
