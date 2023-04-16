@@ -11,9 +11,9 @@ use postgres::{Client, NoTls};
 use dotenv::dotenv;
 use std::env;
 
-use lettre::{Message, SmtpTransport, Transport};
-use lettre::message::{Mailbox, header::ContentType};
 use lettre::transport::smtp::authentication::Credentials;
+use lettre::message::{Mailbox, header::ContentType};
+use lettre::{Message, SmtpTransport, Transport};
 use serde_json::{Value, json};
 
 use std::error::Error;
@@ -22,6 +22,11 @@ use std::fmt;
 #[derive(Serialize, Deserialize)]
 struct Token {
     token: String
+}
+
+#[derive(Serialize, Deserialize)]
+struct MessageJson {
+    message: String
 }
 
 #[derive(Deserialize)]
@@ -103,31 +108,46 @@ impl From<serde_json::Error> for CustomError {
 }
 
 #[post("/send-emails/<token_id>", data = "<email_list>")]
-fn send_emails(token_id: String, email_list: Json<EmailList>) -> Result<Json<Token>, CustomError> {
+fn send_emails(token_id: String, email_list: Json<EmailList>) -> Result<Json<MessageJson>, CustomError> {
     let mut client = establish_connection();
 
     let row = client.query_opt(
-        "SELECT token FROM api_controller WHERE token = $1",
+        "SELECT token, limit_user FROM api_controller WHERE token = $1",
         &[&token_id],
     )?;
 
-    if let Some(_row) = row { // Replace `row` with `_row` since we don't use it
+    if let Some(row) = row {
+        let mut limit: i32 = row.get("limit_user");
+
         let email_list = email_list.into_inner();
 
-        for email in email_list.emails {
-            match send_email(&email.email, &email.title, &email.body) {
-                Ok(response) => println!("Response: {:?}", response),
-                Err(e) => eprintln!("Error: {:?}", e),
+        if limit <= 100 {
+            for email in email_list.emails {
+                match send_email(&email.email, &email.title, &email.body) {
+                    Ok(response) => {
+                        println!("Response: {:?}", response);
+                        limit += 1;
+                        let _ = client.execute(
+                            "UPDATE api_controller SET limit_user = $1 WHERE token = $2",
+                            &[&limit, &token_id],
+                        )?;
+                    }
+                    Err(e) => eprintln!("Error: {:?}", e),
+                }
             }
+    
+            Ok(Json(MessageJson {
+                message: "SUCCESS".to_string(),
+            }))
+        } else {
+            Ok(Json(MessageJson {
+                message: "DAILY LIMIT SET".to_string(),
+            }))
         }
 
-        // Return a success value at the end of the loop
-        Ok(Json(Token {
-            token: "SUCCESS".to_string(),
-        }))
     } else {
-        Ok(Json(Token {
-            token: "ERROR GET TOKEN".to_string(),
+        Ok(Json(MessageJson {
+            message: "INVALID TOKEN".to_string(),
         }))
     }
 }
@@ -137,22 +157,23 @@ fn send_email(to: &str, title: &str, body: &str) -> std::result::Result<Value, B
     let to_email = format!("Hei <{}>", to).parse::<Mailbox>()?;
 
     let email = Message::builder()
-        .from("<testspeedmail2022@gmail.com>".parse().unwrap())
+        .from("<samueldev2196@gmail.com>".parse().unwrap())
         .to(to_email)
         .subject(title)
         .header(ContentType::TEXT_PLAIN)
         .body(format!("{}", body))
         .unwrap();
 
-    let creds = Credentials::new("".to_owned(), "".to_owned());
+    let login_email = env::var("LOGIN_EMAIL")?;
+    let passwd = env::var("PASSWD")?;
 
-    // Open a remote connection to gmail
+    let creds = Credentials::new(login_email, passwd);
+
     let mailer = SmtpTransport::relay("smtp-relay.sendinblue.com")
         .unwrap()
         .credentials(creds)
         .build();
 
-    // Send the email
     match mailer.send(&email) {
         Ok(_) => {
             println!("Email sent successfully!");
