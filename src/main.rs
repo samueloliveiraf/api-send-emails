@@ -190,7 +190,7 @@ fn send_email(to: &str, title: &str, body: &str) -> std::result::Result<Value, B
 fn rocket() -> rocket::Rocket {
     rocket::custom(rocket::config::Config::build(rocket::config::Environment::active().unwrap())
         .address("127.0.0.1")
-        .port(8001)
+        .port(8002)
         .finalize()
         .unwrap())
         .mount("/routes", routes![get_token, send_emails])
