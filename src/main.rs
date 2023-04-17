@@ -116,28 +116,35 @@ fn send_emails(token_id: String, email_list: Json<EmailList>) -> Result<Json<Mes
         &[&token_id],
     )?;
 
-    if let Some(row) = row {
-        let mut limit: i32 = row.get("limit_user");
-
+    if let Some(_) = row {
         let email_list = email_list.into_inner();
 
         for email in email_list.emails {
-            match send_email(&email.email, &email.title, &email.body) {
-                Ok(response) => {
-                    if limit < 30 {
-                        println!("Response: {:?}", response);
-                        limit += 1;
-                        let _ = client.execute(
-                            "UPDATE api_controller SET limit_user = $1 WHERE token = $2",
-                            &[&limit, &token_id],
-                        )?;
-                    } else {
-                        return Ok(Json(MessageJson {
-                            message: "DAILY LIMIT SET".to_string(),
-                        }));
+            let row = client.query_opt(
+                "SELECT token, limit_user FROM api_controller WHERE token = $1",
+                &[&token_id],
+            )?;
+
+            if let Some(row) = row {
+                let limit: i32 = row.get("limit_user");
+
+                if limit < 30 {
+                    match send_email(&email.email, &email.title, &email.body) {
+                        Ok(response) => {
+                            println!("Response: {:?}", response);
+                            let new_limit = limit + 1;
+                            let _ = client.execute(
+                                "UPDATE api_controller SET limit_user = $1 WHERE token = $2",
+                                &[&new_limit, &token_id],
+                            )?;
+                        }
+                        Err(e) => eprintln!("Error: {:?}", e),
                     }
+                } else {
+                    return Ok(Json(MessageJson {
+                        message: "DAILY LIMIT SET".to_string(),
+                    }));
                 }
-                Err(e) => eprintln!("Error: {:?}", e),
             }
         }
 
