@@ -126,16 +126,31 @@ fn send_emails(token_id: String, email_list: Json<EmailList>) -> Result<Json<Mes
                 match send_email(&email.email, &email.title, &email.body) {
                     Ok(response) => {
                         println!("Response: {:?}", response);
-                        limit += 1;
-                        let _ = client.execute(
-                            "UPDATE api_controller SET limit_user = $1 WHERE token = $2",
-                            &[&limit, &token_id],
+                        let row_1 = client.query_opt(
+                            "SELECT token, limit_user FROM api_controller WHERE token = $1",
+                            &[&token_id],
                         )?;
+                    
+                        if let Some(row_1) = row_1 {
+                            let limit_1: i32 = row_1.get("limit_user");
+                    
+                            if limit_1 <= 30 {
+                                limit += 1;
+                                let _ = client.execute(
+                                    "UPDATE api_controller SET limit_user = $1 WHERE token = $2",
+                                    &[&limit, &token_id],
+                                )?;
+                            } else {
+                                return Ok(Json(MessageJson {
+                                    message: "DAILY LIMIT SET".to_string(),
+                                }));
+                            }
+                        }
                     }
                     Err(e) => eprintln!("Error: {:?}", e),
                 }
             }
-    
+
             Ok(Json(MessageJson {
                 message: "SUCCESS".to_string(),
             }))
