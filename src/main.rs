@@ -121,7 +121,7 @@ fn send_emails(token_id: String, email_list: Json<EmailList>) -> Result<Json<Mes
 
         let email_list = email_list.into_inner();
 
-        if limit <= 30 {
+        if limit <= 29 {
             for email in email_list.emails {
                 match send_email(&email.email, &email.title, &email.body) {
                     Ok(response) => {
@@ -134,7 +134,7 @@ fn send_emails(token_id: String, email_list: Json<EmailList>) -> Result<Json<Mes
                         if let Some(row_1) = row_1 {
                             let limit_1: i32 = row_1.get("limit_user");
                     
-                            if limit_1 <= 30 {
+                            if limit_1 <= 29 {
                                 limit += 1;
                                 let _ = client.execute(
                                     "UPDATE api_controller SET limit_user = $1 WHERE token = $2",
