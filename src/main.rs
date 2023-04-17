@@ -121,17 +121,11 @@ fn send_emails(token_id: String, email_list: Json<EmailList>) -> Result<Json<Mes
 
         let email_list = email_list.into_inner();
 
-        if limit <= 29 {
-            for email in email_list.emails {
-                let row_1 = client.query_opt(
-                    "SELECT token, limit_user FROM api_controller WHERE token = $1",
-                    &[&token_id],
-                )?;
-            
-                if let Some(row_1) = row_1 {
-                    let limit_1: i32 = row_1.get("limit_user");
-            
-                    if limit_1 <= 29 {
+        for email in email_list.emails {
+            match send_email(&email.email, &email.title, &email.body) {
+                Ok(response) => {
+                    if limit < 30 {
+                        println!("Response: {:?}", response);
                         limit += 1;
                         let _ = client.execute(
                             "UPDATE api_controller SET limit_user = $1 WHERE token = $2",
@@ -143,24 +137,13 @@ fn send_emails(token_id: String, email_list: Json<EmailList>) -> Result<Json<Mes
                         }));
                     }
                 }
-
-                match send_email(&email.email, &email.title, &email.body) {
-                    Ok(response) => {
-                        println!("Response: {:?}", response);
-                    }
-                    Err(e) => eprintln!("Error: {:?}", e),
-                }
+                Err(e) => eprintln!("Error: {:?}", e),
             }
-
-            Ok(Json(MessageJson {
-                message: "SUCCESS".to_string(),
-            }))
-        } else {
-            Ok(Json(MessageJson {
-                message: "DAILY LIMIT SET".to_string(),
-            }))
         }
 
+        Ok(Json(MessageJson {
+            message: "SUCCESS".to_string(),
+        }))
     } else {
         Ok(Json(MessageJson {
             message: "INVALID TOKEN".to_string(),
